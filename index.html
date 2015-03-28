@@ -2,27 +2,21 @@
     <head>
         <title>JS Game Test</title>
         
-        <meta charset="UTF-8">
-
-        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1, user-scalable=0" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
         <style type="text/css">
             body { margin: 0; padding: 0; background: #000;}
-            canvas { display: block; margin: 0 auto; background: #fff; }
+            #backgroundCanvas { position: absolute; margin-left: 0px; margin-top: 0px; }
+            #gameBoardCanvas { position: absolute; margin-left: 620px; margin-top: 35px; }
         </style>
-        <div style="padding-top: 25px">
-            <script src="js/button.js"></script>
-            <script src="js/game.js"></script>
-            <script src="js/state.js"></script>
-            <script src="js/mainmenustate.js"></script>
-            <script src="js/gamestate.js"></script>
-            <script src="js/level/tile.js"></script>
-            <script src="js/level/blanktile.js"></script>
-            <script src="js/main.js"></script>
-        </div>
+        <script src="js/main.js"></script>
     </head>
     <body>
+        <div id="game" onmousedown="boardClick(event)" onmousemove="boardHover(event, true)" onmouseout="boardHover(event, false)" oncontextmenu="return rightClick(event)">
+<!--             onkeydown="keyPressed(event, true)" onkeyup="keyPressed(event, false)"  -->
+            <canvas id="backgroundCanvas" style="visibility: visible" ></canvas>
+            <canvas id="gameBoardCanvas" style="visibility: hidden"></canvas>
+        </div>
     </body>
 </html>
