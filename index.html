@@ -12,7 +12,7 @@
         </style>
         <script src="js/main.js"></script>
     </head>
-    <body>
+    <body style="overflow: hidden"> <!-- Overflow tag prevents scroll bars from appearing -->
         <div id="game" onmousedown="boardClick(event)" onmousemove="boardHover(event, true)" onmouseout="boardHover(event, false)" oncontextmenu="return rightClick(event)">
 <!--             onkeydown="keyPressed(event, true)" onkeyup="keyPressed(event, false)"  -->
             <canvas id="backgroundCanvas" style="visibility: visible" ></canvas>
