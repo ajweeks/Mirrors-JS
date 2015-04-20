@@ -26,7 +26,7 @@
                 margin: 0;
                 min-width: 400px;
                 min-height: 600px; /* Pretty much useless, nothing is really based on the height in css... */
-                overflow: hidden;   x
+/*                overflow: hidden;*/
             }
             game {
                 width: 100%;
@@ -59,6 +59,18 @@
                 background-color: #3b154b;
                 text-align: center;
                 font-size: 28px;
+            }
+            
+            #backbutton {
+                width: 130px;
+                height: 45px;
+                line-height: 45px;
+                cursor: pointer;
+                background-color: #3b154b;
+                color: white;
+                font-family: 'Yanone Kaffeesatz', sans-serif;
+                font-size: 20px;
+                text-align: center;
             }
             
             #gameboard {
@@ -168,7 +180,7 @@
 
             <div id="aboutstate" style="display: none">
                 <div id="backbutton" style="margin-left: 240px;">
-                    <button onmousedown="if (clickType(event)==='left') Game.sm.enterPreviousState();" style="width: 130px; height: 45px; cursor: pointer; background-color: #3b154b; color: white; font-family: 'Yanone Kaffeesatz', sans-serif; font-size: 20px; border: 0">Back</button>
+                    <div onmousedown="if (clickType(event)==='left') Game.sm.enterPreviousState();">Back</div>
                 </div>
                 <div id="aboutinfo">
                     <p>Mirrors was developed entirey by AJ Weeks in early 2015 using pure JavaScript. The first iteration of the project was written in Java in late 2014. You can read more about it and download a copy at <a href="https://liqwidice.wordpress.com/portfolio/mirrors" target="_blank">liqwidice.wordpress.com/portfolio/mirrors</a></p>
@@ -192,7 +204,7 @@
             
             <div id="versionNumber"></div>
             
-            <div id="infoarea">
+            <div id="infoarea" style="display: none;">
                 <div id="shortcuts"><!-- having a static width isn't ideal, but otherwise the width will change when the longest <li> element is being hovered over and being bolded -->
                     <b>Shortcuts:</b>
                     <ul>

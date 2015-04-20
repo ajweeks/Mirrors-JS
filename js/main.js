@@ -11,13 +11,15 @@ var get = function (what) {
 var Game = {};
 
 Game.init = function () {
-    Game.version = 0.033;
+    Game.version = 0.035;
     document.title = "Mirrors V" + Game.version;
     get('versionNumber').innerHTML = '<a href="https://github.com/ajweeks/mirrors-js" target="_blank" style="color: inherit; text-decoration: none;">' + "V." + Game.version + '</a>';
     
+    Game.releaseStages = { DEVELEOPMENT: "development", PRODUCTION: "production" };
+    
     Bugsnag.appVersion = Game.version;
-    Bugsnag.releaseStage = "development"; // RELEASE make production
-    Bugsnag.notifyReleaseStages = ["production"];
+    Bugsnag.releaseStage = Game.releaseStages.PRODUCTION; // RELEASE make production
+    Bugsnag.notifyReleaseStages = [Game.releaseStages.PRODUCTION];
     
     Game.types = {};
     Game.types.tiles = {};
@@ -310,49 +312,45 @@ Game.init = function () {
     /* @param colours: an array of size two [single laser, corner laser]
        @param dir: direction the tile is facing */
     Game.GameState.Laser = function (entering, exiting, image) {
-        this.entering = entering;
-        this.exiting = exiting;
+        this.entering = entering; // the side of the tile the laser is entering (GLOBALLY, not locally)
+        this.exiting = exiting; // the side of the tile the laser is exiting (GLOBALLY)
         this.image = image || Game.images.lasers[Game.types.colours.RED];
 
-        this.render = function (context, x, y, dir, size) {
+        // @param dir: the direction the tile is facing
+        this.render = function (context, x, y, dir) {
             if (this.entering !== null) Game.renderImage(context, x, y, this.image, add(dir, this.entering), Game.tileSize);
             if (this.exiting !== null) Game.renderImage(context, x, y, this.image, add(dir, this.exiting), Game.tileSize);
         };
     }; // end Game.GameState.Laser()
 
     // represents an actual receptor, in a receptor tile (receptor tiles can have 0-4 of these things)
-    Game.GameState.Receptor = function (dir, col) {
-        this.dir = dir; // the dir we are facing relative to our host tile
+    Game.GameState.Receptor = function (col) {
         this.col = col;
         this.laser = null;
         this.on = false;
 
-        this.update = function (dir) {
-            if (this.dir === null) return;
+        this.update = function () {
             this.on = false;
-            if (this.laser !== null) {
-                if (this.laser.entering === add(this.dir, dir) && this.colourTurnsMeOn(this, this.laser.col)) {
-                    this.on = true;
-                }
-            }
+            if (this.laser !== null && this.colourTurnsMeOn(this, this.laser.col)) {
+                this.on = true;
+            } else this.on = false;
 
             if (!this.on) {
                 this.laser = null;
             }
         };
 
-        this.render = function(context, dir, x, y) {
+        this.render = function(context, x, y, dir) {
             if (this.on) {
                 context.fillStyle = "green";
-                context.fillRect(x, y, Game.tileSize, Game.tileSize);
+                context.fillRect(x - Game.tileSize / 2 , y - Game.tileSize / 2, Game.tileSize, Game.tileSize);
             }
             
-            Game.renderImage(context, x, y, Game.images[Game.types.tiles.RECEPTOR][this.col], add(this.dir, dir), Game.tileSize);
+            Game.renderImage(context, x, y, Game.images[Game.types.tiles.RECEPTOR][this.col], dir, Game.tileSize);
         };
 
         // returns whether or not the specified color turns the specified receptor on
         this.colourTurnsMeOn = function (receptor, col) {
-            if (receptor.dir === null) return false;
             return true;
             // LATER implement colour turns me on method
 //            if (col === Game.images.receptors.white) return true;
@@ -396,7 +394,7 @@ Game.init = function () {
                     this.addLaser(new Game.GameState.Laser(null, this.dir, Game.images.lasers[this.color]));
                     break;
                 case Game.types.tiles.RECEPTOR:
-                    this.receptors = [new Game.GameState.Receptor(Game.NORTH, Game.types.colours.BLUE), null, new Game.GameState.Receptor(Game.NORTH, Game.types.colours.GREEN), null];
+                    this.receptors = [new Game.GameState.Receptor(Game.types.colours.BLUE), null, new Game.GameState.Receptor(Game.types.colours.GREEN), null];
                     break;
                 default:
                     break;
@@ -421,14 +419,15 @@ Game.init = function () {
         // click
         this.click = function (event, down) {
             switch (this.type) {
+                case Game.types.tiles.RECEPTOR:
+                    console.log("receptor! " + this.receptors[0].on);
                 case Game.types.tiles.BLANK:
                 case Game.types.tiles.MIRROR:
-                case Game.types.tiles.RECEPTOR:
                     if (down === false) return; // for now we don't care about mouse releases FUTURE use mouse releases for something?
-                    if (clickType(event) === "right") {
+                    if (clickType(event) === "left") {
                         this.dir += 1;
                         if (this.dir > this.maxdir()) this.dir = 0;
-                    } else if (clickType(event) === "left") {
+                    } else if (clickType(event) === "right") {
                         if (Game.levelEditMode) {
                             this.setType(Game.selectedTile);
                         }
@@ -436,11 +435,11 @@ Game.init = function () {
                     break;
                 case Game.types.tiles.POINTER:
                     if (down === false) return; 
-                    if (clickType(event) === "right") {
+                    if (clickType(event) === "left") {
                         this.dir += 1;
                         if (this.dir > this.maxdir()) this.dir = 0;
-                    } else if (clickType(event) === "left") {
-                        this.on = (this.on === true ? false : true); // clean up later (test if "this.on = !this.on" works)
+                    } else if (clickType(event) === "right") {
+                        this.on = !this.on;
                         if (this.on === true) {
                             if (Game.levelEditMode) this.color = this.nextColor(false);
                             this.addLaser(new Game.GameState.Laser(null, this.dir, Game.images.lasers[this.color]));
@@ -450,7 +449,7 @@ Game.init = function () {
                         if (Game.levelEditMode) {
                             this.setType(Game.selectedTile);
                         }
-                        console.log("pointer has " + this.lasers.length + " lasers and is " + this.on + " on");
+                        console.log("pointer has " + this.lasers.length + " laser(s) and is " + (this.on ? "on" : "off"));
                     }
                     break;
                 default:
@@ -470,13 +469,19 @@ Game.init = function () {
 
         // update
         this.update = function (board) {
+            var i;
             switch (this.type) {
                 case Game.types.tiles.BLANK:
                 case Game.types.tiles.MIRROR:
                     break;
                 case Game.types.tiles.RECEPTOR:
-                    for (var i = 0; i < this.receptors.length; i++) {
-                        this.receptors.update();
+                    for (i = 0; i < this.lasers.length; i++) {
+                        if (this.receptors[this.lasers[i].entering + this.dir]) { // there's a laser pointing into a receptor
+                            this.receptors[this.lasers[i].entering + this.dir].laser = this.lasers[i];
+                        }
+                    }
+                    for (i = 0; i < this.receptors.length; i++) {
+                        if (this.receptors[i]) this.receptors[i].update();
                     }
                     break;
                 case Game.types.tiles.POINTER:
@@ -484,14 +489,16 @@ Game.init = function () {
                     else this.addLaser(new Game.GameState.Laser(null, this.dir, Game.images.lasers[this.color]));
                     // ^ this line ^ should always be true if this tile is "on" LATER test that
                     
-                    assert(board);
-                    
                     var checkedTiles = [this.w * this.h], // 0=not checked, 1=checked once, 2=checked twice (done)
                         nextDir = this.dir, // direction towards next tile
                         nextTile = board.getTile(this.x, this.y),
                         xx,
                         yy;
 
+                    for (i = 0; i < this.w * this.h; i++) {
+                        checkedTiles[i] = 0;
+                    }
+                    
                     do {
                         xx = nextTile.x + Game.offset[nextDir][0];
                         yy = nextTile.y + Game.offset[nextDir][1];
@@ -528,7 +535,7 @@ Game.init = function () {
                 case Game.types.tiles.POINTER:
 //                    console.log(this.on + " " + this.lasers.length);
                     for (i = 0; i < this.lasers.length; i++) {
-                        this.lasers[i].render(context, x, y, this.type === Game.types.tiles.POINTER ? this.dir : 0);
+                        this.lasers[i].render(context, x, y, 0);
                     }
 
                     Game.renderImage(context, x, y, Game.images[this.type], this.dir, Game.tileSize);
@@ -538,7 +545,7 @@ Game.init = function () {
                         this.lasers[i].render(context, x, y, this.type === Game.types.tiles.POINTER ? this.dir : 0);
                     }
                     for (i = 0; i < this.receptors.length; i++) {
-                        if (this.receptors[i] !== null) this.receptors[i].render(context, this.dir + i, x, y);
+                        if (this.receptors[i] !== null) this.receptors[i].render(context, x, y, this.dir + i);
                     }
                     break;
                 default:
@@ -592,6 +599,8 @@ Game.init = function () {
 
         for (i = 0; i < w * h; i++) {
             this.tiles[i] =  new Game.GameState.Tile(i % w, Math.floor(i / w), Game.types.tiles.MIRROR, Game.NORTH);
+            this.tiles[53] =  new Game.GameState.Tile(53 % w, Math.floor(53 / w), Game.types.tiles.POINTER, Game.EAST);
+            this.tiles[38] =  new Game.GameState.Tile(38 % w, Math.floor(38 / w), Game.types.tiles.RECEPTOR, Game.NORTH);
             this.tiles[i].init();
         }
         
@@ -657,7 +666,7 @@ Game.init = function () {
 
         this.getTile = function (x, y) {
             if (x >= 0 && x < this.w && y >= 0 && y < this.h) {
-                if (this.tiles[x * this.w + y]) {
+                if (this.tiles[x + y *  this.w]) {
                     return this.tiles[x + y * this.w];
                 }
             }
@@ -926,13 +935,13 @@ window.onbeforeunload=function(event) {
     }
 };
 
-// RELEASE remove this
 window.onload = function () {
-    Bugsnag.user = {
-      id: 0,
-      name: "AJ Weeks",
-      email: "ajweeks@shaw.ca"
-    };
+// RELEASE remove this
+//    Bugsnag.user = {
+//      id: 0,
+//      name: "AJ Weeks",
+//      email: "ajweeks@shaw.ca"
+//    };
     
     Game.init();
     Game.loop();
