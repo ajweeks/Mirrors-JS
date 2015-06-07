@@ -2,12 +2,28 @@
 <!-- Copyright AJ Weeks 2015 -->
 <html lang="en">
     <head>
-        <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
-        <link rel="shortcut icon" href="res/favicon.ico" type="image/x-icon">
-        <link rel="icon" href="res/favicon.ico" type="image/x-icon">
+        <meta content="text/html;charset=utf-8" http-equiv="content-type">
+        <meta name="keywords" content="mirrors, js, html, css, mirrors-js, game">
+        <meta name="description" content="A 2D tile-based laser-filled game created by AJ Weeks">
+        <meta name="author" content="AJ Weeks">
+        <link rel="icon" href="favicon.ico" type="image/x-icon">
         <style type="text/css">
-        /* Google fonts - Yanone Kaddeesatz (http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz:700,400) */
-        /* latin-ext */@font-face {font-family: 'Yanone Kaffeesatz';font-style: normal;font-weight: 400;src: local('Yanone Kaffeesatz Regular'), local('YanoneKaffeesatz-Regular'),url(http://fonts.gstatic.com/s/yanonekaffeesatz/v7/YDAoLskQQ5MOAgvHUQCcLV83L2yn_om9bG0a6EHWBso.woff2) format('woff2');unicode-range: U+0100-024F, U+1E00-1EFF, U+20A0-20AB, U+20AD-20CF, U+2C60-2C7F, U+A720-A7FF;}/* latin */@font-face {font-family: 'Yanone Kaffeesatz';font-style: normal;font-weight: 400;src: local('Yanone Kaffeesatz Regular'), local('YanoneKaffeesatz-Regular'),url(http://fonts.gstatic.com/s/yanonekaffeesatz/v7/YDAoLskQQ5MOAgvHUQCcLfGwxTS8d1Q9KiDNCMKLFUM.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;}/* latin-ext */@font-face {font-family: 'Yanone Kaffeesatz';font-style: normal;font-weight: 700;src: local('Yanone Kaffeesatz Bold'),('YanoneKaffeesatz-Bold'), url(http://fonts.gstatic.com/s/yanonekaffeesatz/v7/We_iSDqttE3etzfdfhuPRcccuzE5yCkGgbLL57XEJls.woff2) format('woff2');unicode-range: U+0100-024F, U+1E00-1EFF, U+20A0-20AB, U+20AD-20CF, U+2C60-2C7F, U+A720-A7FF;}/* latin */@font-face {font-family: 'Yanone Kaffeesatz';font-style: normal;font-weight: 700;src: local('Yanone Kaffeesatz Bold'), local('YanoneKaffeesatz-Bold'), url(http://fonts.gstatic.com/s/yanonekaffeesatz/v7/We_iSDqttE3etzfdfhuPRfZL2QQ6ZygscP6wIFo8mp8.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;}
+            @font-face {
+                font-family: YanoneKaffeesatzThin;
+                src: url('res/fonts/YanoneKaffeesatz-Thin.ttf') format('truetype');
+            }
+            @font-face {
+                font-family: YanoneKaffeesatzLight;
+                src: url('res/fonts/YanoneKaffeesatz-Light.ttf') format('truetype');
+            }
+            @font-face {
+                font-family: YanoneKaffeesatz;
+                src: url('res/fonts/YanoneKaffeesatz-Regular.ttf') format('truetype');
+            }
+            @font-face {
+                font-family: YanoneKaffeesatzBold;
+                src: url('res/fonts/YanoneKaffeesatz-Bold.ttf') format('truetype');
+            }
         </style>
         <style type="text/css">
             html {
@@ -19,21 +35,21 @@
                 -ms-user-select: none;
                 user-select: none;
                 
-                font-family: 'Yanone Kaffeesatz', sans-serif;
+                font-family: 'YanoneKaffeesatzLight', sans-serif;
             }
             body {
                 background: #191919;
                 margin: 0;
                 min-width: 400px;
                 min-height: 600px; /* Pretty much useless, nothing is really based on the height in css... */
-/*                overflow: hidden;*/
+                overflow-x: hidden;
             }
-            game {
+            #game {
                 width: 100%;
                 height: 100%;
                 position: absolute;
             }
-            p, input {
+            input {
                 -webkit-touch-callout: text;
                 -webkit-user-select: text;
                 -khtml-user-select: text;
@@ -52,25 +68,61 @@
             #mainmenubuttons {
                 margin: 10% auto;
             }
-            #mainmenubuttons div {
+            
+            .button {
                 color: white;
                 cursor: pointer;
                 margin: 6px auto;
                 background-color: #3b154b;
                 text-align: center;
                 font-size: 28px;
-            }
-            
-            #backbutton {
                 width: 130px;
                 height: 45px;
                 line-height: 45px;
-                cursor: pointer;
-                background-color: #3b154b;
-                color: white;
-                font-family: 'Yanone Kaffeesatz', sans-serif;
-                font-size: 20px;
+            }
+            
+            [class~=lvlselect] {
+                background-color: #3e3e3e;
+                cursor: default;
+            }
+            
+            #backarrow, #forwardarrow {
+                color: aliceblue;
+                background-color: rgba(25, 25, 25, 0.8);
+                cursor: default;
+                position: fixed;
+                top: 0;
+                width: 100px;
+                height: 100%;
+                z-index: 5001;
+                display: inline-block;
                 text-align: center;
+            }
+            
+            #backarrow {
+                left: 0;
+            }
+                        
+            #forwardarrow {
+                right: 0;
+            }
+            
+            #forwardarrow p, #backarrow p {
+                margin-top: 400%;
+                font-size: 48px;
+            }
+            
+            .page {
+                position: relative;
+                display: inline-block;
+                margin: 0 60px;
+            }
+            
+            /* represents a column of buttons in the lvl selection area */
+            .col {
+                position: relative;
+                display: inline-block;
+                margin: 0 60px;
             }
             
             #gameboard {
@@ -108,9 +160,8 @@
             
             #infoarea {
                 color: aliceblue;
-                float: right;
                 margin: 15px;
-                position: absolute;
+                position: fixed;
                 top: 0;
                 right: 0;
                 font-size: 22px;
@@ -133,7 +184,7 @@
                 cursor: pointer;
             }
             #infoarea [onmousedown]:hover {
-                text-shadow: 3px 3px 2px green; 
+                text-shadow: 0px 0px 3px #BFFFBF;
             }
             
             #aboutinfo {
@@ -156,12 +207,12 @@
             
             #versionNumber {
                 position: fixed;
-                left: 0px;
-                bottom: 0px;
+                left: 0;
+                bottom: 0;
                 opacity: 0.5;
                 margin: 8px;
                 font-size: 20px;
-                z-index: 1000;
+                z-index: 100000;
                 color: white;
             }
             #versionNumber:hover {
@@ -170,7 +221,7 @@
             }
         </style>
         <script src="js/exernal/stats.min.js"></script>
-        <script src="js/exernal/bugsnag.js" data-apikey="0378601a233896374ff5cc83b1d302ef"></script>
+<!--        <script src="js/exernal/bugsnag.js" data-apikey="0378601a233896374ff5cc83b1d302ef"></script>  -->
         <script src="js/main.js"></script>
     </head>
     <body>
@@ -179,9 +230,7 @@
             <div id="mainmenubuttons"></div>
 
             <div id="aboutstate" style="display: none">
-                <div id="backbutton" style="margin-left: 240px;">
-                    <div onmousedown="if (clickType(event)==='left') Game.sm.enterPreviousState();">Back</div>
-                </div>
+                <div class="button" onmousedown="if (clickType(event)==='left') Game.sm.enterPreviousState();" style="margin-left: 240px;">Back</div>
                 <div id="aboutinfo">
                     <p>Mirrors was developed entirey by AJ Weeks in early 2015 using pure JavaScript. The first iteration of the project was written in Java in late 2014. You can read more about it and download a copy at <a href="https://liqwidice.wordpress.com/portfolio/mirrors" target="_blank">liqwidice.wordpress.com/portfolio/mirrors</a></p>
                     <p>The unobfuscated source code can be found at: <a href="https://github.com/ajweeks/mirrors-js" target="_blank">github.com/ajweeks/mirrors-js</a></p>
@@ -192,9 +241,12 @@
                 </div>
             </div>
             
-            <div id="gameboard" oncontextmenu="return false;">
+            <div id="levelselectstate" style="display: none;"></div>
+            
+            <div id="gameboard" oncontextmenu="return false;" style="display: none">
+                <div class="button" onmousedown="if (clickType(event)==='left') Game.sm.enterPreviousState();" style="margin-left: -430px; margin-top: -40px;">Back</div>
                 <div id="tiles"></div>
-                <canvas id="gamecanvas" style="display:none;"></canvas>
+                <canvas id="gamecanvas"></canvas>
             </div>
             
             <div id="lvledittilesarea" style="display: none">
